@@ -63,24 +63,24 @@ export default class Kueasm {
    * @returns アセンブル結果 (バイナリ表現)
    */
   public exec() {
-    this.log.info('start assemble')
+    this.log.info('Start assemble')
     this.log.debug(this._asm)
 
-    this.log.info('start parse')
+    this.log.info('Start parse')
     if ( ! this.parse() ) {
-      this.log.error('failed to parse assembly program')
+      this.log.error('Failed to parse assembly program')
       return
     }
 
-    this.log.info('start process')
+    this.log.info('Start process')
     if ( ! this.process() ) {
-      this.log.error('failed to convert binary data')
+      this.log.error('Failed to convert binary data')
       return
     }
 
-    this.log.info('start generate')
+    this.log.info('Start generate')
     if ( ! this.generate() ) {
-      this.log.error('failed to generate binary')
+      this.log.error('Failed to generate binary')
       return
     }
 
@@ -188,7 +188,7 @@ export default class Kueasm {
         this._labels[asmLine.label] = this._currentAddr
       }
 
-      this.log.debug(`process ${asmLine.mnemonic}`)
+      this.log.debug(`Process ${asmLine.mnemonic}`)
       if ( ! asmLine.mnemonic ) { continue }
       const mnemonic = asmLine.mnemonic.toUpperCase()
 
@@ -218,7 +218,7 @@ export default class Kueasm {
       else if (mnemonic.match(/^IN$/)              ) { if (!this.processIn(asmLine)         ) {return false} }
       else if (mnemonic.match(/^ST/)               ) { if (!this.processSt(asmLine)         ) {return false} }
       else {
-        this.log.error(`invalid mnemonic '${mnemonic}`)
+        this.log.error(`Invalid mnemonic '${mnemonic}`)
         return false
       }
 
@@ -227,12 +227,12 @@ export default class Kueasm {
         if ( !asmLine.addr ) {
           asmLine.addr = this._currentAddr
           this._currentAddr += this._addrUnitBytes
-          this.log.debug('increment addr')
+          this.log.debug('Increment addr')
         }
       }
       if ( asmLine.operand != null ) {
         this._currentAddr += this._addrUnitBytes
-        this.log.debug('increment addr')
+        this.log.debug('Increment addr')
       }
     }
 
@@ -277,12 +277,12 @@ export default class Kueasm {
         }
         else {
           const value = this.evalExpression(term)
-          this.log.debug(`evaluate term: ${term} → ${value}`)
+          this.log.debug(`Evaluate term: ${term} → ${value}`)
 
           // 評価できない項があれば式ごと遅延評価に回す
           if ( !this.isNumber(value) ) {
-            this.log.debug(`expression '${term}' in '${expression}' cannot be evaluated now. `
-                         + `it will be evaluated later`)
+            this.log.debug(`Expression '${term}' in '${expression}' cannot be evaluated now. `
+                         + `It will be evaluated later`)
             return `$(${expression})`
           }
 
@@ -293,7 +293,7 @@ export default class Kueasm {
       // 全項評価できる値なら式全体も評価する
       const value = eval(formattedTerms.join(''))
 
-      this.log.debug(`evaluate expression: ${formattedTerms.join('')} → ${value}`)
+      this.log.debug(`Evaluate expression: ${formattedTerms.join('')} → ${value}`)
       return value
     }
     // 16 進数
@@ -339,7 +339,7 @@ export default class Kueasm {
 
     const baseOpcode = MNEMONIC_MAP[mnemonic] as number  // 命令表の行を決定
     if ( !baseOpcode ) {
-      this.log.error(`internal error: invalid mnemonic ${mnemonic}`)
+      this.log.error(`Internal error: invalid mnemonic ${mnemonic}`)
       return {error: true}
     }
 
@@ -349,14 +349,14 @@ export default class Kueasm {
     if      (op1 === 'ACC') { res.opcode = baseOpcode + 0 }
     else if (op1 === 'IX' ) { res.opcode = baseOpcode + 8 }
     else                    {
-      this.log.error(`invalid operand '${op1}' for ${mnemonic}`)
+      this.log.error(`Invalid operand '${op1}' for ${mnemonic}`)
       return {error: true}
     }
 
     // op2 == ACC
     if (op2 === 'ACC') {
       if (mnemonic.match(/^ST/)) {
-        this.log.error(`invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
+        this.log.error(`Invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
         return {error: true}
       }
       res.opcode += 0
@@ -364,7 +364,7 @@ export default class Kueasm {
     // op2 == IX
     else if (op2 === 'IX') {
       if (mnemonic.match(/^ST/)) {
-        this.log.error(`invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
+        this.log.error(`Invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
         return {error: true}
       }
       res.opcode += 1
@@ -372,14 +372,14 @@ export default class Kueasm {
     // op2 == d (ラベルを含む)
     else if (op2.match(/^([A-Z0-9_\+\-\*\/]+)$/)) {
       if (mnemonic.match(/^ST/)) {
-        this.log.error(`invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
+        this.log.error(`Invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
         return {error: true}
       }
       res.opcode += 2
       res.operand = this.evalExpression(op2)
 
       if ( !this.isNumber(res.operand) ) {
-        this.log.debug(`operand ${res.operand} cannot be evaluated now. skip.`)
+        this.log.debug(`Operand ${res.operand} cannot be evaluated now. skip.`)
       }
     }
     // # op2 = [sp+d]
@@ -397,7 +397,7 @@ export default class Kueasm {
       res.opcode += 4
       res.operand = this.evalExpression(op2.replace(/[\[\]]/g, ''))
       if ( !this.isNumber(res.operand) ) {
-        this.log.debug(`operand ${res.operand} cannot be evaluated now. skip.`)
+        this.log.debug(`Operand ${res.operand} cannot be evaluated now. skip.`)
       }
     }
     // # op2 = (IX+d) / (IX) (only for kuechip2)
@@ -411,7 +411,7 @@ export default class Kueasm {
     //   $operand = parse_expression($1);
     // }
     else {
-      this.log.error(`invalid operand '${op1}/${op2}'`)
+      this.log.error(`Invalid operand '${op1}/${op2}'`)
       return {error: true}
     }
 
@@ -426,11 +426,11 @@ export default class Kueasm {
    */
   private processEqu(asmLine: AsmLine) {
     if ( !asmLine.label ) {
-      this.log.error('label not found for EQU')
+      this.log.error('Label not found for EQU')
       return false
     }
     if ( !asmLine.op1 ) {
-      this.log.error('expected 1 operand for EQU')
+      this.log.error('Expected 1 operand for EQU')
       return false
     }
     if ( asmLine.op1.toUpperCase() === 'CA' ) {
@@ -457,7 +457,7 @@ export default class Kueasm {
    */
   private processLoc(asmLine: AsmLine) {
     if ( !asmLine.op1 ) {
-      this.log.error('expected 1 operand for LOC')
+      this.log.error('Expected 1 operand for LOC')
       return false
     }
 
@@ -466,7 +466,7 @@ export default class Kueasm {
       this._locAddr = addr as number
     }
 
-    this.log.debug(`loc addr: ${this._locAddr}`)
+    this.log.debug(`LOC addr: ${this._locAddr}`)
     // TODO: 評価できない場合 (2pass)
     return true
   }
@@ -479,12 +479,12 @@ export default class Kueasm {
    */
   private processDat(asmLine: AsmLine) {
     if ( !asmLine.op1 ) {
-      this.log.error('expected 1 operand for DAT')
+      this.log.error('Expected 1 operand for DAT')
       return false
     }
 
     if ( !this._locAddr ) {
-      this.log.debug('loc addr is not defined now. skip.')
+      this.log.debug('LOC addr is not defined now. skip.')
       asmLine.isSkipped = true
       return true
     }
@@ -493,7 +493,7 @@ export default class Kueasm {
     const value = this.evalExpression(op1)
 
     if ( !this.isNumber(value) ) {
-      this.log.debug('data cannot be evaluated now. skip.')
+      this.log.debug('Data cannot be evaluated now. skip.')
       asmLine.isSkipped = true
       return true
     }
@@ -513,7 +513,7 @@ export default class Kueasm {
    * @returns 成否 (true or false)
    */
   private processProg(asmLine: AsmLine) {
-    this.log.error('PROG is not supported')
+    this.log.error(`'PROG' is not supported`)
     return false
   }
 
@@ -525,7 +525,7 @@ export default class Kueasm {
    */
   private processLd(asmLine: AsmLine) {
     if (!asmLine.op1 || !asmLine.op2) {
-      this.log.error('expected 2 operands for LOC')
+      this.log.error('Expected 2 operands for LOC')
       return false
     }
 
@@ -570,7 +570,7 @@ export default class Kueasm {
    */
   private processStSbcAdc(asmLine: AsmLine) {
     if (!asmLine.op1 || !asmLine.op2) {
-      this.log.error('expected 2 operands for ${asmLine.mnemonic}')
+      this.log.error('Expected 2 operands for ${asmLine.mnemonic}')
       return false
     }
 
@@ -595,7 +595,7 @@ export default class Kueasm {
    */
   private processSub(asmLine: AsmLine) {
     if (!asmLine.op1 || !asmLine.op2) {
-      this.log.error(`expected 2 operands for ${asmLine.mnemonic}`)
+      this.log.error(`Expected 2 operands for ${asmLine.mnemonic}`)
       return false
     }
 
@@ -627,7 +627,7 @@ export default class Kueasm {
    */
   private processAdd(asmLine: AsmLine) {
     if (!asmLine.op1 || !asmLine.op2) {
-      this.log.error(`expected 2 operands for ${asmLine.mnemonic}`)
+      this.log.error(`Expected 2 operands for ${asmLine.mnemonic}`)
       return false
     }
 
@@ -658,7 +658,7 @@ export default class Kueasm {
    * @returns 成否 (true or false)
    */
   private processEorOrAndCmp(asmLine: AsmLine) {
-    this.log.error('not implemented')
+    this.log.error('Not implemented')
     return false
   }
 
@@ -670,7 +670,7 @@ export default class Kueasm {
    */
   private processB(asmLine: AsmLine) {
     if (!asmLine.op1) {
-      this.log.error(`expected 1 operand for ${asmLine.mnemonic}`)
+      this.log.error(`Expected 1 operand for ${asmLine.mnemonic}`)
       return false
     }
 
@@ -692,7 +692,7 @@ export default class Kueasm {
     else if (mnemonic === 'BLT') { asmLine.opcode = 0x3E }
     else if (mnemonic === 'BLE') { asmLine.opcode = 0x3F }
     else {
-      this.log.error(`invalid mnemonic '${mnemonic}'`)
+      this.log.error(`Invalid mnemonic '${mnemonic}'`)
       return false
     }
 
@@ -707,7 +707,7 @@ export default class Kueasm {
    * @returns 成否 (true or false)
    */
   private processNop(asmLine: AsmLine) {
-    this.log.error('not implemented')
+    this.log.error('Not implemented')
     return false
   }
 

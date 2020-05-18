@@ -17,6 +17,7 @@
     "@microsoft/tsdoc": "^0.12.19",
     "@types/command-line-args": "^5.0.0",
     "@types/command-line-usage": "^5.0.1",
+    "@types/jquery": "^3.3.38",
     "@types/sinon": "^9.0.0",
     "ava": "^3.8.2",
     "ava-ts": "^0.25.2",

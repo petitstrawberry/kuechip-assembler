@@ -27,3 +27,8 @@ gulp watch-and-test
 ```
 
 
+# web で自動アセンブル
+F12
+```
+$('#input-assembly').on('keyup', () => $('#btn-assemble').click())
+```
