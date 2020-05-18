@@ -1,0 +1,30 @@
+{
+  "defaultSeverity": "error",
+  "extends": [
+    "tslint:recommended"
+  ],
+  "jsRules": {},
+  "rules": {
+    "quotemark": [true, "single"],
+    "semicolon": [true, "never"],
+    "no-consecutive-blank-lines": false,
+    "ordered-imports": [false],
+    "object-literal-sort-keys": [false],
+    "typedef-whitespace": [
+      true,
+      {},
+      { "parameter": "space" }
+    ],
+    "indent": [ true, "spaces", 2 ],
+    "no-console": false,
+    "import-spacing": false,
+    "one-line": "check-else",
+    "no-conditional-assignment": false,
+    "no-string-literal": false,
+    "label-position": false,
+    "no-eval": false,
+    "no-bitwise": false,
+    "radix": false
+  },
+  "rulesDirectory": []
+}
