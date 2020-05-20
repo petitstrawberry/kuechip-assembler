@@ -4,7 +4,7 @@ import commandLineUsage from 'command-line-usage'
 import log4js from 'log4js'
 import Kueasm from '@/lib/kueasm'
 
-let logger = log4js.getLogger()
+const logger = log4js.getLogger()
 logger.level = 'warn'
 
 

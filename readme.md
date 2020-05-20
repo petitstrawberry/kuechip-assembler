@@ -32,3 +32,10 @@ F12
 ```
 $('#input-assembly').on('keyup', () => $('#btn-assemble').click())
 ```
+
+
+lib/kueasm.ts:      アセンブラ本体. 全体の制御 + アセンブラへの疑似命令の処理
+lib/instruction.ts: 1 命令 (アセンブリ 1 行) に相当するオブジェクト
+lib/parser.ts       パーサ
+lib/logger.ts:      cli/ブラウザに合わせて適切なロギングを提供する
+lib/util.ts:        雑多なユーティリティ関数
