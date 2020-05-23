@@ -286,7 +286,7 @@ export default class Instruction {
 
   /**
    * DAT のバイナリ表現を生成
-   * @param asmLine - AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    * @todo 分類としては疑似命令になるので kueasm.ts に移したい
    */
   private assembleDat(params: AssembleParams) {
@@ -307,7 +307,7 @@ export default class Instruction {
 
   /**
    * PROG のバイナリ表現を生成
-   * @param asmLine - AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleProg(params: AssembleParams) {
     throw util.error(`'PROG' is not supported`)
@@ -316,7 +316,7 @@ export default class Instruction {
 
   /**
    * LD のバイナリ表現を生成
-   * @param asmLine - AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleLd(params: AssembleParams) {
     if ( ! this.hasTwoOperands() ) {
@@ -354,8 +354,8 @@ export default class Instruction {
 
 
   /**
-   *  ST, SBC, ADC のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * ST/SBC/ADC のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleStSbcAdc(params: AssembleParams) {
     if ( ! this.hasTwoOperands() ) {
@@ -371,7 +371,7 @@ export default class Instruction {
 
   /**
    * SUB のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleSub(params: AssembleParams) {
     if ( ! this.hasTwoOperands() ) {
@@ -396,7 +396,7 @@ export default class Instruction {
 
   /**
    * ADD のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleAdd(params: AssembleParams) {
     if ( ! this.hasTwoOperands() ) {
@@ -421,7 +421,7 @@ export default class Instruction {
 
   /**
    * EOR/OR/CMP のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleEorOrAndCmp(params: AssembleParams) {
     logger.error('Not implemented')
@@ -431,7 +431,7 @@ export default class Instruction {
 
   /**
    * B のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * @param params - assemble() された時のパラメータ
    */
   private assembleB(params: AssembleParams) {
     if ( ! this.hasOneOperand() ) {
@@ -466,8 +466,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * NOP のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleNop(params: AssembleParams) {
     logger.error('Not implemented')
@@ -476,8 +476,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * HLT のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleHlt(params: AssembleParams) {
     if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
@@ -488,8 +488,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * RCF のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleRcf(params: AssembleParams) {
     logger.error('not implemented')
@@ -498,8 +498,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * SCF のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleScf(params: AssembleParams) {
     logger.error('not implemented')
@@ -508,8 +508,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * INC のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleInc(params: AssembleParams) {
     logger.error('not implemented')
@@ -518,8 +518,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * DEC のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleDec(params: AssembleParams) {
     logger.error('not implemented')
@@ -528,8 +528,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * PSH のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assemblePsh(params: AssembleParams) {
     logger.error('not implemented')
@@ -538,8 +538,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * POP のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assemblePop(params: AssembleParams) {
     logger.error('not implemented')
@@ -548,8 +548,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * CAL のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleCal(params: AssembleParams) {
     logger.error('not implemented')
@@ -558,8 +558,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * RET のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleRet(params: AssembleParams) {
     logger.error('not implemented')
@@ -568,18 +568,18 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * shift/rotate 系命令のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
-  private assembleSrRl(params: AssembleParams) {
+  private assembleShiftRotate(params: AssembleParams) {
     logger.error('not implemented')
     return false
   }
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * OUT のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleOut(params: AssembleParams) {
     logger.error('not implemented')
@@ -588,8 +588,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * IN のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleIn(params: AssembleParams) {
     logger.error('not implemented')
@@ -598,8 +598,8 @@ export default class Instruction {
 
 
   /**
-   *  のバイナリ表現を生成
-   * @param this._- AsmLine オブジェクト
+   * ST のバイナリ表現を生成
+   * @param params - assemble() された時のパラメータ
    */
   private assembleSt(params: AssembleParams) {
     logger.error('not implemented')

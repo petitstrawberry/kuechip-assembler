@@ -19,8 +19,9 @@ export default class Kueasm {
 
 
   /**
-   * @param asmFilePath - アセンブリファイルへのパス
+   * @param asm - アセンブリプログラムの内容
    * @param mode - 'kuechip2' or 'kuechip3'
+   * @param logLebel - ログレベル (デフォルトは warn. debug や trace で詳細ログを確認可能)
    */
   constructor(asm: string, mode: ASM_MODE, logLevel: string = 'warn') {
     this._mode = mode
@@ -96,23 +97,17 @@ export default class Kueasm {
       logger.debug(`Process ${inst.mnemonic()}.`)
 
       // バイナリ表現への変換
-      try {
-        const {curAddrInc, locAddrInc} = inst.assemble({
-          labels:        this._labels,
-          curAddr:       this._currentAddr,
-          locAddr:       this._locAddr,
-          onlyAddrAlloc: true,
-        })
+      const {curAddrInc, locAddrInc} = inst.assemble({
+        labels:        this._labels,
+        curAddr:       this._currentAddr,
+        locAddr:       this._locAddr,
+        onlyAddrAlloc: true,
+      })
 
-        // 次の配置命令アドレスを算出
-        this._currentAddr += (curAddrInc * this._addrUnitBytes)
-        if ( this._locAddr ) {
-          this._locAddr += (locAddrInc * this._addrUnitBytes)
-        }
-      }
-      catch(e) {
-        logger.error(e.message)
-        return false
+      // 次の配置命令アドレスを算出
+      this._currentAddr += (curAddrInc * this._addrUnitBytes)
+      if ( this._locAddr ) {
+        this._locAddr += (locAddrInc * this._addrUnitBytes)
       }
     }
     logger.setLineNumber(undefined)
@@ -139,18 +134,12 @@ export default class Kueasm {
       logger.debug(`Process ${inst.mnemonic()}.`)
 
       // バイナリ表現への変換
-      try {
-        const {curAddrInc, locAddrInc} = inst.assemble({
-          labels:        this._labels,
-          curAddr:       this._currentAddr,
-          locAddr:       this._locAddr,
-          onlyAddrAlloc: false,
-        })
-      }
-      catch(e) {
-        logger.error(e.message)
-        return false
-      }
+      const {curAddrInc, locAddrInc} = inst.assemble({
+        labels:        this._labels,
+        curAddr:       this._currentAddr,
+        locAddr:       this._locAddr,
+        onlyAddrAlloc: false,
+      })
     }
     logger.setLineNumber(undefined)
 

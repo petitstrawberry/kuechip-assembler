@@ -49,16 +49,17 @@ export class Util {
         }
         else {
           const value = this.evalExpression(term, labels)
-          logger.debug(`Evaluate term: ${term} → ${value}`)
+          logger.trace(`Evaluate term: ${term} → ${value}`)
           formattedTerms.push(value)
         }
       }
 
-      // 全項評価できる値なら式全体も評価する
-      const value = eval(formattedTerms.join(''))
+      // この時点でラベルの評価は完了している
+      // (一部が評価できない場合は再帰呼び出しした evalExpression で例外が投げられる)
+      const expressionValue = eval(formattedTerms.join(''))
 
-      logger.debug(`Evaluate expression: ${formattedTerms.join('')} → ${value}`)
-      return value
+      logger.trace(`Evaluate expression: ${formattedTerms.join('')} → ${expressionValue}`)
+      return expressionValue
     }
     // 16 進数
     else if ( expression.match(/^[0-9A-F]+H$/i) ) {
