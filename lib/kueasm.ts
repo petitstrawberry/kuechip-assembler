@@ -106,7 +106,7 @@ export default class Kueasm {
 
       // 次の配置命令アドレスを算出
       this._currentAddr += (curAddrInc * this._addrUnitBytes)
-      if ( this._locAddr ) {
+      if ( this._locAddr != null ) {
         this._locAddr += (locAddrInc * this._addrUnitBytes)
       }
     }
@@ -156,12 +156,12 @@ export default class Kueasm {
     const label = inst.label()
     const op1   = inst.op1()
 
-    if ( ! label ) {
+    if ( label == null ) {
       logger.error('Label not found for EQU')
       return false
     }
 
-    if ( ! op1 ) {
+    if ( op1 == null ) {
       logger.error('Expected 1 operand for EQU')
       return false
     }
@@ -173,6 +173,7 @@ export default class Kueasm {
       this._labels[label] = this._currentAddr
     }
     else {
+      logger.debug(this._labels)
       const value = util.evalExpression(op1, this._labels)
       this._labels[label] = value
     }
@@ -190,7 +191,7 @@ export default class Kueasm {
   private processLoc(inst: Instruction) {
     const op1 = inst.op1()
 
-    if ( ! op1 ) {
+    if ( op1 == null ) {
       logger.error('Expected 1 operand for LOC')
       return false
     }

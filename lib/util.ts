@@ -11,7 +11,8 @@ export class Util {
       return isFinite(value)
     }
     else if ( typeof value === 'string' ) {
-      return !isNaN(Number(value))
+      // 末尾の H/h は 16 進数なので除外して数値か判定
+      return !isNaN(Number(value.replace(/h$/i, '')))
     }
     else {
       return false
@@ -70,7 +71,7 @@ export class Util {
       return parseInt(expression) // そのまま
     }
     // label
-    else if ( labels[expression] ) {
+    else if ( labels[expression] != null ) {
       return labels[expression]
     }
     else {

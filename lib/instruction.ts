@@ -137,10 +137,9 @@ export default class Instruction {
     else if (mnemonic.match(/^POP$/)             ) { this.assemblePop(params)         }
     else if (mnemonic.match(/^CAL$/)             ) { this.assembleCal(params)         }
     else if (mnemonic.match(/^RET$/)             ) { this.assembleRet(params)         }
-    else if (mnemonic.match(/^[SR][RL]/)         ) { this.assembleSrRl(params)        }
+    else if (mnemonic.match(/^[SR][RL][AL]$/)    ) { this.assembleShiftRotate(params) }
     else if (mnemonic.match(/^OUT$/)             ) { this.assembleOut(params)         }
     else if (mnemonic.match(/^IN$/)              ) { this.assembleIn(params)          }
-    else if (mnemonic.match(/^ST/)               ) { this.assembleSt(params)          }
     else {
       throw util.error(`Invalid mnemonic '${this.mnemonic()}.`)
     }
@@ -154,21 +153,17 @@ export default class Instruction {
         this._addr = params.curAddr // 配置アドレスを確定
       }
 
-      if ( ! this._requireAddrWidth ) {
-        // 次の配置アドレスを決定
-        if ( this._opcode == null ) {
-          throw util.error('internal error: Both _requiredAddrWidth and _opcode are not defined.')
-        }
-        else {
-          result.curAddrInc++        // アドレスインクリメント回数を増加
-          this._requireAddrWidth = 2
-        }
-
-        if ( this._operand != null ) {
-          result.curAddrInc++        // アドレスインクリメント回数を増加
-          this._requireAddrWidth = 4
-        }
+      if ( this._requireAddrWidth == null ) {
+        throw util.error(`internal error: this._requireAddrWidth is not defined`)
       }
+
+      // 次の配置アドレスを決定
+      result.curAddrInc++       // アドレスインクリメント回数を増加
+
+      if ( this._operand != null ) {
+        result.curAddrInc++     // アドレスインクリメント回数を増加
+      }
+
 
       result.curAddrInc = this._requireAddrWidth
       logger.debug(`Increase addr ${result.curAddrInc} unit(s).`)
@@ -200,7 +195,7 @@ export default class Instruction {
     const op2      = this._op2      as string
 
     const baseOpcode = MNEMONIC_MAP[mnemonic] as number  // 命令表の行を決定
-    if ( !baseOpcode ) {
+    if ( baseOpcode == null ) {
       throw util.error(`Internal error: invalid mnemonic ${mnemonic}`)
     }
 
@@ -230,7 +225,7 @@ export default class Instruction {
       res.opcode += 1
     }
     // op2 == d (ラベルを含む)
-    else if (op2.match(/^([A-Z0-9_\+\-\*\/]+)$/)) {
+    else if (op2.match(/^([A-Z0-9_\+\-\*\/]+)$/i)) {
       if (mnemonic.match(/^ST/)) {
         throw util.error(`Invalid operand '${op2}' of 'ST' (use 'LD' to set registers)`)
       }
@@ -243,20 +238,34 @@ export default class Instruction {
         logger.debug(`Operand ${res.operand} cannot be evaluated now. skip.`)
       }
     }
-    // # op2 = [sp+d]
-    // elsif ($op2 =~ /\[(SP|sp)\+*([\w\+\-]*)\]/) {
-    //   if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
-    //   $opcode += 3;
-    //   $operand = parse_expression($2);
-    // }
-    // # op2 = [IX+d] / [IX]
-    // elsif ($op2 =~ /\[(IX|ix)\+*([\w\+\-]*)\]/) {
-    //   if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
-    //   $opcode += 6;
-    //   $operand = parse_expression($2);
-    // }
+    // op2 = [sp+d]
+    else if ( op2.match(/\[SP(\+.+)?\]$/i) ) {
+      if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
+      res.opcode += 3
+
+      const offset = RegExp.$1
+      if ( offset != null && offset.trim().length > 0 ) {
+        res.operand = util.evalExpression(offset, params.labels)
+      }
+      else {
+        res.operand = 0
+      }
+    }
+    // op2 = [IX+d] / [IX]
+    else if ( op2.match(/^\[IX(\+.+)?\]$/i) ) {
+      if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
+      res.opcode += 6
+
+      const offset = RegExp.$1
+      if ( offset != null && offset.trim().length > 0 ) {
+        res.operand = util.evalExpression(offset, params.labels)
+      }
+      else {
+        res.operand = 0
+      }
+    }
     // op2 = [d]                         # d : decimal, hex or label
-    else if (op2.match(/^\[([A-Z0-9_\+\-\*\/]+)\]$/)) {
+    else if ( op2.match(/^\[([A-Z0-9_\+\-\*\/]+)\]$/i) ) {
       if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
       res.opcode += 4
       res.operand = util.evalExpression(op2.replace(/[\[\]]/g, ''), params.labels)
@@ -264,18 +273,32 @@ export default class Instruction {
         logger.debug(`Operand ${res.operand} cannot be evaluated now. skip.`)
       }
     }
-    // # op2 = (IX+d) / (IX) (only for kuechip2)
-    // elsif ($op2 =~ /\((IX|ix)\+*([\w\+\-]*)\)/) {
-    //   if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
-    //   $opcode += 7;
-    //   $operand = parse_expression($2);
-    // }
-    // # op2 = (d) (only for kuechip2)     # d : decimal, hex or label
-    // elsif ($op2 =~ /\(([\w\+\-]+)\)/) { # ラベルも含まれるので \d ではなく \w
-    //   if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
-    //   $opcode += 5;
-    //   $operand = parse_expression($1);
-    // }
+    // op2 = (IX+d) / (IX) (only for kuechip2)
+    else if ( op2.match(/^\(IX(\+.+)?\)$/i) ) {
+      if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
+      res.opcode += 7
+
+      const offset = RegExp.$1
+      if ( offset != null && offset.trim().length > 0 ) {
+        res.operand = util.evalExpression(offset, params.labels)
+      }
+      else {
+        res.operand = 0
+      }
+    }
+    // op2 = (d) (only for kuechip2)     # d : decimal, hex or label
+    else if ( op2.match(/^\((.*)\)$/) ) {
+      if ( params.onlyAddrAlloc ) { return {requireAddrWidth: 2} }
+      res.opcode += 5
+
+      const offset = RegExp.$1
+      if ( offset != null && offset.trim().length > 0 ) {
+        res.operand = util.evalExpression(offset, params.labels)
+      }
+      else {
+        res.operand = 0
+      }
+    }
     else {
       throw util.error(`Invalid operand '${op1}/${op2}'`)
     }
@@ -364,8 +387,8 @@ export default class Instruction {
 
     const res = this.getOpcodeOfAssignmentAndArithmeticInst(params)
     if ( params.onlyAddrAlloc ) { this._requireAddrWidth = res.requireAddrWidth; return }
-    if ( res.opcode  ) { this._opcode  = res.opcode }
-    if ( res.operand ) { this._operand = res.operand }
+    if ( res.opcode  != null ) { this._opcode  = res.opcode }
+    if ( res.operand != null ) { this._operand = res.operand }
   }
 
 
@@ -388,8 +411,8 @@ export default class Instruction {
     } else {
       const res = this.getOpcodeOfAssignmentAndArithmeticInst(params)
       if ( params.onlyAddrAlloc ) { this._requireAddrWidth = res.requireAddrWidth; return }
-      if ( res.opcode  ) { this._opcode  = res.opcode  }
-      if ( res.operand ) { this._operand = res.operand }
+      if ( res.opcode  != null ) { this._opcode  = res.opcode  }
+      if ( res.operand != null ) { this._operand = res.operand }
     }
   }
 
@@ -413,8 +436,8 @@ export default class Instruction {
     } else {
       const res = this.getOpcodeOfAssignmentAndArithmeticInst(params)
       if ( params.onlyAddrAlloc ) { this._requireAddrWidth = res.requireAddrWidth; return }
-      if ( res.opcode  ) { this._opcode  = res.opcode  }
-      if ( res.operand ) { this._operand = res.operand }
+      if ( res.opcode  != null ) { this._opcode  = res.opcode  }
+      if ( res.operand != null ) { this._operand = res.operand }
     }
   }
 
@@ -424,8 +447,17 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleEorOrAndCmp(params: AssembleParams) {
-    logger.error('Not implemented')
-    return false
+    if ( ! this.hasTwoOperands() ) {
+      throw util.error(`Expected 2 operands for ${this._mnemonic}`)
+    }
+
+    const op1 = this._op1 as string
+    const op2 = this._op2 as string
+
+    const res = this.getOpcodeOfAssignmentAndArithmeticInst(params)
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = res.requireAddrWidth; return }
+    if ( res.opcode  != null ) { this._opcode  = res.opcode  }
+    if ( res.operand != null ) { this._operand = res.operand }
   }
 
 
@@ -470,8 +502,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleNop(params: AssembleParams) {
-    logger.error('Not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x00
   }
 
 
@@ -483,7 +516,6 @@ export default class Instruction {
     if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
 
     this._opcode = 0x0F
-    return true
   }
 
 
@@ -492,8 +524,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleRcf(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x20
   }
 
 
@@ -502,8 +535,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleScf(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x28
   }
 
 
@@ -512,8 +546,13 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleInc(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    if ( this._op1 !== 'SP' ) {
+      throw util.error(`Invalid operand for ${this._mnemonic}: ${this._op1}`)
+    }
+
+    this._opcode = 0x04
   }
 
 
@@ -522,8 +561,13 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleDec(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    if ( this._op1 !== 'SP' ) {
+      throw util.error(`Invalid operand for ${this._mnemonic}: ${this._op1}`)
+    }
+
+    this._opcode = 0x05
   }
 
 
@@ -532,8 +576,17 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assemblePsh(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( ! this.hasOneOperand() ) {
+      throw util.error(`Expected 1 operand for ${this._mnemonic}`)
+    }
+
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    if      (this._op1 === 'ACC') { this._opcode = 0x08 }
+    else if (this._op1 === 'IX' ) { this._opcode = 0x09 }
+    else {
+      throw util.error(`invalid operand '${this._op1}' for ${this._mnemonic}`)
+    }
   }
 
 
@@ -542,8 +595,17 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assemblePop(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( ! this.hasOneOperand() ) {
+      throw util.error(`Expected 1 operand for ${this._mnemonic}`)
+    }
+
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    if      (this._op1 === 'ACC') { this._opcode = 0x0A }
+    else if (this._op1 === 'IX' ) { this._opcode = 0x0B }
+    else {
+      throw util.error(`invalid operand '${this._op1}' for ${this._mnemonic}`)
+    }
   }
 
 
@@ -552,8 +614,15 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleCal(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( ! this.hasOneOperand() ) {
+      throw util.error(`Expected 1 operand for ${this._mnemonic}`)
+    }
+    const op1 = this._op1 as string
+
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 2; return }
+
+    this._opcode = 0x0C
+    this._operand = util.evalExpression(op1, params.labels)
   }
 
 
@@ -562,8 +631,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleRet(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x0D
   }
 
 
@@ -572,8 +642,28 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleShiftRotate(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( ! this.hasOneOperand() ) {
+      throw util.error(`Expected 1 operand for ${this._mnemonic}`)
+    }
+
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    if      (this._mnemonic === 'SRA') { this._opcode = 0x40 }
+    else if (this._mnemonic === 'SLA') { this._opcode = 0x41 }
+    else if (this._mnemonic === 'SRL') { this._opcode = 0x42 }
+    else if (this._mnemonic === 'SLL') { this._opcode = 0x43 }
+    else if (this._mnemonic === 'RRA') { this._opcode = 0x44 }
+    else if (this._mnemonic === 'RLA') { this._opcode = 0x45 }
+    else if (this._mnemonic === 'RRL') { this._opcode = 0x46 }
+    else if (this._mnemonic === 'RLL') { this._opcode = 0x47 }
+    else {
+      throw util.error(`Invalid mnemonic: ${this._mnemonic}`)
+    }
+
+    if      (this._op1 === 'ACC') { this._opcode += 0 }
+    else if (this._op1 === 'IX' ) { this._opcode += 8 }
+    else                          {
+      throw util.error(`Invalid operand for ${this._mnemonic}: ${this._op1}`) }
   }
 
 
@@ -582,8 +672,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleOut(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x10
   }
 
 
@@ -592,8 +683,9 @@ export default class Instruction {
    * @param params - assemble() された時のパラメータ
    */
   private assembleIn(params: AssembleParams) {
-    logger.error('not implemented')
-    return false
+    if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 1; return }
+
+    this._opcode = 0x1F
   }
 
 
@@ -603,7 +695,6 @@ export default class Instruction {
    */
   private assembleSt(params: AssembleParams) {
     logger.error('not implemented')
-    return false
   }
 
 
