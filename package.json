@@ -7,7 +7,7 @@
     "lint": "tslint --project .",
     "test": "gulp test",
     "autotest": "gulp watch-and-test",
-    "build:cli": "webpack --config webpack.config.cli.js",
+    "build:cli": "webpack --config webpack.config.cli.js; chmod +x ./dist/cli.js; sed -i -e '1s|^|#!/usr/bin/env node\\n\\n|' ./dist/cli.js",
     "build:web": "webpack --config webpack.config.web.js",
     "build":     "npm run build:cli && npm run build:web"
   },
