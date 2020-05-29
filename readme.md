@@ -4,8 +4,9 @@ TypeScript で書いているので, cli/ブラウザともに実行できます
 
 package.json に書いている通り, 以下のコマンドが実行できます.
 ```
-npm run build  # トランスパイル
-npm run test   # テスト実行
+npm run test    # テスト実行
+npm run build   # CLI 用にトランスパイル
+npm run webpack # web 用にトランスパイル
 
 npm run autobuild  # ファイル更新を監視して自動でトランスパイル
 npm run autotest   # ファイル更新を監視して自動でテスト実行
