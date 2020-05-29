@@ -17,6 +17,7 @@ export default class Kueasm {
   private _locAddr?: number    = undefined      // LOC (DAT で値を配置するアドレス) (for kue3)
   private _isEnded             = false          // end 命令が見つかった
 
+  private _multilineLabel?: string              // ラベル単独行の場合に一時記録 (次の行に紐付け)
 
   /**
    * @param asm - アセンブリプログラムの内容
@@ -27,6 +28,7 @@ export default class Kueasm {
     this._mode = mode
     this._addrUnitBytes = (mode === 'kuechip3') ? 2 : 1
 
+    logger.setLogLevel(logLevel)
     logger.info('Start parse')
 
     try {
@@ -74,14 +76,26 @@ export default class Kueasm {
       // 空行はスキップ
       if ( inst.raw().trim() === '' ) { continue }
 
+      if ( inst.mnemonic() != null && this._multilineLabel != null ) {
+        inst.previousLineLabel(this._multilineLabel)
+        this._multilineLabel = undefined
+      }
+
       // 疑似命令の処理
       // - EQU, その他のラベル行の処理
       if ( inst.mnemonic() === 'EQU' ) {
         this.processEqu(inst)
       }
       else {
-        const label = inst.label()
-        if ( label != null ) { this._labels[label] = this._currentAddr }
+        const label = inst.label() || inst.previousLineLabel()
+        if ( label != null ) {
+          if ( inst.mnemonic() != null ) { // 命令がある行ならラベルに行番号をバインド
+            this._labels[label] = this._currentAddr
+          }
+          else { // 命令が無い行なら (次の命令行にバインドするために) 記録しておく
+            this._multilineLabel = inst.label()
+          }
+        }
       }
 
       // - LOC の処理
@@ -153,7 +167,7 @@ export default class Kueasm {
    * @returns 成否 (true or false)
    */
   private processEqu(inst: Instruction) {
-    const label = inst.label()
+    const label = inst.label() || inst.previousLineLabel()
     const op1   = inst.op1()
 
     if ( label == null ) {

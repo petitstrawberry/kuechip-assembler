@@ -26,11 +26,12 @@ export default class Instruction {
   private readonly _raw: string
 
   // パース後のトークン
-  private _label?:            string
-  private _mnemonic?:         string
-  private _op1?:              string
-  private _op2?:              string
-  private _comment?:          string
+  private _label?:             string
+  private _previousLineLabel?: string
+  private _mnemonic?:          string
+  private _op1?:               string
+  private _op2?:               string
+  private _comment?:           string
 
   // バイナリ値
   private _opcode?:           number
@@ -45,11 +46,17 @@ export default class Instruction {
 
 
   // getter
-  public raw()       { return this._raw }
-  public label()     { return this._label }
-  public mnemonic()  { return this._mnemonic }
-  public op1()       { return this._op1 }
-  // public isSkipped() { return this._isSkipped }
+  public raw()               { return this._raw }
+  public label()             { return this._label }
+  public mnemonic()          { return this._mnemonic }
+  public op1()               { return this._op1 }
+
+
+  // getter/setter
+  public previousLineLabel(value?: string) {
+    if ( value == null ) { return this._previousLineLabel  } // getter
+    else                 { this._previousLineLabel = value } // setter
+  }
 
 
   /**
@@ -360,7 +367,7 @@ export default class Instruction {
       this._opcode = 0x03
     }
     // LD SP d
-    else if (op1 === 'SP' && util.isNumber(op2)) {
+    else if (op1 === 'SP') {
       if ( params.onlyAddrAlloc ) { this._requireAddrWidth = 2; return }
 
       this._opcode = 0x02

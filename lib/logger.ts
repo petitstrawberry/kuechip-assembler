@@ -2,7 +2,7 @@
 
 import log4js, {Log4js, Logger} from 'log4js'
 
-
+// CLI 用
 export class KueasmLogger {
   private _log4jsLogger: Logger
   private _lineNumber:   number | undefined // ログに出力するアセンブリの行番号
@@ -14,10 +14,16 @@ export class KueasmLogger {
     // else            { this.log4jsLogger.level = 'debug'  }
   }
 
+
   // setter
   public setLineNumber(lineNumber: number | undefined) {
     this._lineNumber = lineNumber
   }
+
+  public setLogLevel(logLevel: string) {
+    this._log4jsLogger.level = logLevel
+  }
+
 
   // log
   public trace(msg: any) { this._log4jsLogger.trace(msg, this.getLineNumberInfo()) }

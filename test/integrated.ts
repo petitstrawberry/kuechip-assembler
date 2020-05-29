@@ -27,6 +27,7 @@ asmFiles.forEach((asmFile) => {
     const asm = fs.readFileSync(asmFile).toString()
     const exp = fs.readFileSync(asmFile.replace(/.asm$/, '.exp')).toString()
     const binary = (new Kueasm(asm, 'kuechip3')).exec()
+    // const binary = (new Kueasm(asm, 'kuechip3', 'debug')).exec()  // ログレベル変更
     t.truthy(binary)
     t.deepEqual(binary?.split('\n'), exp.split('\n'))
   })
