@@ -1,6 +1,6 @@
 import Parser from '@/lib/parser'
 import util   from '@/lib/util'
-import logger from '@/lib/logger'
+import logger from '@envlib/logger'
 
 
 const MNEMONIC_MAP: {[key: string]: number} = {

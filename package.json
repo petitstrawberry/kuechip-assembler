@@ -5,11 +5,11 @@
   "main": "main.js",
   "scripts": {
     "lint": "tslint --project .",
-    "build": "gulp build",
-    "autobuild": "gulp watch-and-build",
     "test": "gulp test",
     "autotest": "gulp watch-and-test",
-    "webpack": "webpack"
+    "build:cli": "webpack --config webpack.config.cli.js",
+    "build:web": "webpack --config webpack.config.web.js",
+    "build":     "npm run build:cli && npm run build:web"
   },
   "author": "Yuuki Oosako",
   "license": "UNLICENSED",
@@ -35,7 +35,8 @@
     "tslint-loader": "^3.5.4",
     "typescript": "^3.8.3",
     "webpack": "^4.43.0",
-    "webpack-cli": "^3.3.11"
+    "webpack-cli": "^3.3.11",
+    "webpack-node-externals": "^1.7.2"
   },
   "ava": {
     "extensions": [
@@ -50,5 +51,8 @@
     "command-line-args": "^5.1.1",
     "command-line-usage": "^6.1.0",
     "log4js": "^6.2.1"
+  },
+  "browser": {
+    "fs": false
   }
 }

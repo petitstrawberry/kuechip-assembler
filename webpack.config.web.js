@@ -42,6 +42,7 @@ module.exports = {
     ],
     alias: {
       '@': path.resolve(__dirname, '.'),
+      '@envlib': path.resolve(__dirname, './lib/web/'),
     },
   },
   node: {

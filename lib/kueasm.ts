@@ -1,4 +1,4 @@
-import logger from '@/lib/logger'
+import logger from '@envlib/logger'
 import Instruction from '@/lib/instruction'
 import util from '@/lib/util'
 

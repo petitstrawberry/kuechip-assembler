@@ -1,4 +1,4 @@
-import logger from '@/lib/logger'
+import logger from '@envlib/logger'
 
 export class Util {
   /**

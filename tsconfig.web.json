@@ -3,5 +3,9 @@
   "compilerOptions": {
     "target": "es5",
     "module": "es2015"
+  },
+  "paths": {
+    "@envlib/*": ["./lib/web/*"],
+    "@envlib":   ["./lib/web"]
   }
 }
