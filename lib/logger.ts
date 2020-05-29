@@ -105,5 +105,5 @@ export class KueasmLogger {
 
 
 // ---------- 共通 ----------
-const logger = new KueasmLogger('warn')
-export default logger
+const kueasmLogger = new KueasmLogger('warn')
+export default kueasmLogger
