@@ -11,12 +11,19 @@ export class Util {
       return isFinite(value)
     }
     else if ( typeof value === 'string' ) {
-      // 末尾の H/h は 16 進数なので除外して数値か判定
-      return !isNaN(Number(value.replace(/h$/i, '')))
+      // string そのまま number として扱える場合
+      if ( !isNaN(Number(value)) ) {
+        return true
+      }
+      else if ( /[0-9A-F]+H/i.exec(value) ) {
+        return true
+      }
+      else {
+        return false
+      }
     }
-    else {
-      return false
-    }
+
+    return false
   }
 
 
@@ -26,8 +33,11 @@ export class Util {
    * @returns パディング済み 16 進数文字列
    */
   public dec2hex(num: number, digit: number, prefix: string = '0x') {
-    if ( num < 0 ) { num = num & 0xFFFF }  // 補数表現
-    return prefix + num.toString(16).toUpperCase().padStart(digit, '0')
+    if ( num < 0 ) { num = num & 0xFFFF }     // 補数表現
+    return prefix + num.toString(16)          // 16 進数表記
+                       .substr(-digit, digit) // 桁数分切り出し (1 byte の時の補数表現用)
+                       .toUpperCase()         // 大文字
+                       .padStart(digit, '0')  // 0 埋め
   }
 
 
