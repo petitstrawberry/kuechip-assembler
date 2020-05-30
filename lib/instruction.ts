@@ -320,7 +320,11 @@ export default class Instruction {
    * @todo 分類としては疑似命令になるので kueasm.ts に移したい
    */
   private assembleDat(params: AssembleParams) {
-    if ( params.onlyAddrAlloc ) { this._addr = params.locAddr; return }
+    if ( params.onlyAddrAlloc ) { return }
+
+    // DAT の配置アドレス決定は 1st pass でラベルの値が決定してからでないとできない
+    // → 他の命令とは異なり 2nd pass で配置アドレスも決める
+    this._addr = params.locAddr
 
     if ( ! this.hasOneOperand() ) {
       throw util.error(`Expected 1 operand for ${this.mnemonic()}`)

@@ -98,9 +98,6 @@ export default class Kueasm {
         }
       }
 
-      // - LOC の処理
-      if ( inst.mnemonic() === 'LOC' ) { this.processLoc(inst) }
-
       // 命令行でなければ次へ
       if ( inst.mnemonic() == null
            || inst.mnemonic() === 'EQU'
@@ -118,11 +115,8 @@ export default class Kueasm {
         onlyAddrAlloc: true,
       })
 
-      // 次の配置命令アドレスを算出
+      // 次の命令配置アドレスを算出
       this._currentAddr += (curAddrInc * this._addrUnitBytes)
-      if ( this._locAddr != null ) {
-        this._locAddr += (locAddrInc * this._addrUnitBytes)
-      }
     }
     logger.setLineNumber(undefined)
 
@@ -137,6 +131,9 @@ export default class Kueasm {
 
       // - END の処理
       if ( inst.mnemonic() === 'END' ) { break }
+
+      // - LOC の処理
+      if ( inst.mnemonic() === 'LOC' ) { this.processLoc(inst) }
 
       // 命令行でなければ次へ
       if (
@@ -154,6 +151,11 @@ export default class Kueasm {
         locAddr:       this._locAddr,
         onlyAddrAlloc: false,
       })
+
+      // 次の DAT の配置アドレスを算出
+      if ( this._locAddr != null ) {
+        this._locAddr += (locAddrInc * this._addrUnitBytes)
+      }
     }
     logger.setLineNumber(undefined)
 
