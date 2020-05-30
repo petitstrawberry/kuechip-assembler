@@ -48,7 +48,7 @@ gulp.task('watch-and-build', () => gulp.watch(sources, gulp.series('lint', 'buil
 
 // テスト実行
 gulp.task('test', (callback) => {
-  exec('./node_modules/.bin/ava ./test/*.ts --fail-fast -v', (err, stdout, stderr) => {
+  exec('./node_modules/.bin/ava ./test/*.ts -c1 --fail-fast -v', (err, stdout, stderr) => {
     console.log(stdout)
     console.error(stderr)
     callback(0)
