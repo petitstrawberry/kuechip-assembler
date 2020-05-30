@@ -19,7 +19,6 @@ const allAsmFiles = [
   'sample/push_pop.asm',
 ]
 
-
 // 指定があればその入力を使う
 const asmFiles = (process.argv.length > 2 ? process.argv.slice(2) : allAsmFiles) as string[]
 asmFiles.forEach((asmFile) => {
