@@ -47,6 +47,7 @@ export class Util {
    * @returns パディング付き 16 進数表現
    */
   public evalExpression(expression: string, labels: {[key: string]: number }): number {
+    expression = expression.replace(/\s+/g, '')
     if ( expression.match(/[\+|\-|\*|\/]/) ) {
       const terms = expression.split(/\s*([\+|\-|\*|\/])\s*/) // 各項を切り出す
 
