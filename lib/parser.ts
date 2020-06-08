@@ -44,8 +44,8 @@ export default class Parser {
    * @returns 成功: true, 失敗: false
    */
   private parseComment() {
-    // '*', '#', ';;', '//' 以降をコメントとして扱う
-    const regexComment = /(\*|#|;;|\/\/)(?<comment>.*)$/
+    // '#', ';;', '//' 以降をコメントとして扱う
+    const regexComment = /(#|;;|\/\/)(?<comment>.*)$/
 
     const match = this._buf.match(regexComment)
     if ( match ) {
