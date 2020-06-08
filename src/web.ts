@@ -28,6 +28,6 @@ function assemble() {
 }
 
 // アセンブルボタン (ts 側のコードを叩くのでこちらでイベントを設定しておく)
-$('#btn-assemble').on('click', assemble)
+$('#area-assemble-button').on('click', assemble)
 
 
