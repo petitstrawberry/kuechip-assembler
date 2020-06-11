@@ -1,0 +1,86 @@
+h1 {
+  margin-top:    3.5em;
+  margin-bottom: 0.5em;
+  padding:       0.5em;
+  color:         white;
+  background:    #6984a0;
+  border-left:   solid 5px #446689;
+}
+
+h2 {
+  position:      relative;
+  margin-top:    2.5rem;
+  margin-bottom: 0.5rem;
+  padding-left:  30px;
+  font-size:     22px;
+  color:         #325A8C;
+  border-bottom: solid 1px #ddd;
+}
+
+h3 {
+  font-size:     19px;
+  margin-left:   0.5rem;
+}
+
+h4 {
+  font-size:     16px;
+  margin-left:   1.0rem;
+}
+
+h1:first-of-type {
+  margin-top:    0.5rem;
+}
+
+h1 > h2:first-of-type {
+  margin-top:    0;
+}
+
+h2::before,
+h2::after {
+  content:  "□" !important;
+  position: absolute !important;
+}
+
+h2::before{
+ left: 0px;
+ top:  -3px;
+}
+
+h2::after{
+ left:  5px;
+ top:   3px;
+ color: #A1B8D1;
+}
+
+p {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+p {
+  font-size: 0.98rem;
+}
+
+ul {
+  padding-inline-start: 1rem;
+}
+
+ul,
+:not(li) > ul {
+  margin-left: 3rem;
+}
+
+li > ul {
+  padding-inline-start: 2rem;
+}
+
+section {
+    margin: 1rem;
+}
+
+pre {
+    border: solid 1px black;
+    padding: 0.5rem;
+    margin: auto;
+    width: fit-content;
+}

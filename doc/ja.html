@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>KUECHIP-3F アセンブラ ドキュメント</title>
+  <meta charset="utf-8">
+  <meta name="description" content="KUECHIP-3F アセンブラの日本語ドキュメント">
+  <link rel="stylesheet" href="doc-style.css">
+</head>
+<body>
+<section>
+  <h1>アセンブリ言語プログラムの BNF 風表現</h1>
+
+  <p>
+    KUECHIP-3F アセンブラが入力として扱うことができるアセンブリ言語プログラムの BNF 風表現を以下に示す.
+  </p>
+
+  <pre id="bnf">JavaScript の実行を許可する必要があります.</pre>
+  <script> // <> が多いので js として埋め込んで挿入する
+    const bnf = `
+<program>                  ::= <instruction>+
+<instruction>              ::= [<label>{<space> | <newline>}+] <0op inst> [<comment>] <newline>+
+                             | [<label>{<space> | <newline>}+] <1op inst> [<comment>] <newline>+
+                             | [<label>{<space> | <newline>}+] <2op inst> [<comment>] <newline>+
+<label>                    ::= <alphanumeric character>+ ':'
+<alphanumeric character>   ::= 'A' | 'B' | ... | 'Z' | 'a' | ... | 'z' | '0' | ... | '9'
+<0op inst>                 ::= <0op inst mnemonic>
+<0op inst mnemonic>        ::= 'NOP' | 'RET' | 'HLT' | 'OUT' | 'IN' | 'RCF' | 'SCF'
+<1op inst>                 ::= <1op inst mnemonic> <space> <operand>
+<1op inst mnemonic>        ::= 'INC' | 'DEC' | 'CAL' | PSH' | 'POP'
+                             | 'BA' | 'BNZ' | 'BZP' | 'BP' | 'BNI' | 'BNC' | 'BGE' | 'BGT'
+                             | 'BVF' | 'BZ' | 'BN' | 'BZN' | 'BNO' | 'BC' | 'BLT' | 'BLE'
+                             | 'SRA' | 'SLA' | 'SRL' | 'SLL' | 'RRA' | 'RLA' | 'RRL' | 'RLL'
+<2op inst>                 ::= <2op inst mnemonic> <space> <operand> [','] <space> <operand>
+<2op inst mnemonic>        ::= 'INC' | 'DEC' | 'LD' | 'ST' | 'SBC' | 'ADC' | 'SUB' | 'ADD'
+                             | 'EOR' | 'OR' | 'AND' | 'CMP'
+<comment>                  ::= '#' (任意の文字列)
+<newline>                  ::= (LF) | (CR) (LF)
+<operand>                  ::= <register>
+                             | <immediate value>
+                             | '[' <immediate value> ']'
+                             | '[' <offsetted register value> ']'
+<register>                 ::= 'ACC' | 'IX' | 'SP'
+<immediate value>          ::= <expression>
+<offsetted register value> ::= 'IX' <space>* '+' <space>* <immediate value>
+                             | 'IX' <space>* '-' <space>* <immediate value>
+                             | 'SP' <space>* '+' <space>* <immediate value>
+                             | 'SP' <space>* '-' <space>* <immediate value>
+<expression>               ::= <term>
+                             | <expression> <space>* '+' <space>* <term>
+                             | <expression> <space>* '-' <space>* <term>
+<term>                     ::= <factor>
+                             | <term> <space>* '*' <space>* <factor>
+                             | <term> <space>* '/' <space>* <factor>
+<factor>                   ::= <number> | <label>
+<number>                   ::= <decimal number>+
+                             | {<decimal character> | <alphabet in hex>}+ {'H' | 'h'}
+<numerical character>      ::= '0' | '1' | ... | '9'
+<alphabet in hex>          ::= 'A' | 'B' | ... | 'F' | 'a' | 'b' | ... | 'f'
+<space>                    ::= ' ' | '\t'
+`
+
+    document.getElementById('bnf').innerText = bnf.trim()
+  </script>
+
+  <p>
+    ここで用いている BNF 派生表現は下記の通りである.
+    ただし, オペランドの制約は正確に示すと表現が複雑になりすぎるため上記の表現では考慮していない.<br>
+    例えば, ST の第 2 オペランドにレジスタを指定することはできない.<br>
+    各ニーモニックに対してどのようなオペランドを用いるかは, 別途ドキュメントを参照のこと.<br>
+  </p>
+  <ul>
+    <li>クオート付き文字列は文字列そのものを表す</li>
+    <li>[] 付き要素は省略可能</li>
+    <li>{} はアイテムのグループのうち任意の 1 つを表す</li>
+    <li>* は 0 個以上の繰り返しを表す</li>
+    <li>+ は 1 個以上の繰り返しを表す</li>
+  </ul>
+</section>
+
+<section>
+  <h1>各要素について</h1>
+  <section>
+    <h2>ニーモニックとオペランド</h2>
+    <p>
+      KUECHIP-3F アセンブリ言語プログラムは, 1 行に 1 命令を記述する.<br>
+      命令はニーモニック (命令の種類の指定) と 0〜2 個のオペランド (命令の引数) からなる.<br>
+      各命令は, 定められた数のオペランドを持つ必要がある.<br>
+      オペランドが
+      例えば加算を行う ADD 命令は "ADD ACC, 1" のように 2 つのオペランドを必要とする.<br>
+    </p>
+  </section>
+
+  <section>
+    <h2>ラベル</h2>
+    <p>
+      各行には定数を定義するための "ラベル" を用いることができる.<br>
+      ラベルは, 同一行に命令があればその命令,
+      同一行に命令が存在しない場合は次の命令の配置アドレスを参照するための機能である.<br>
+      また, 疑似命令 EQU を用いることで, ラベルに特定の値 (定数) を設定することができる.<br>
+      ラベルの同一行に EQU 疑似命令がある場合, そのラベルの値は命令の配置アドレスではなく EQU のオペランドの値となる.<br>
+      ラベルの値は命令のオペランドとして用いることができる.
+    </p>
+
+    <p>
+      具体例を以下に示す.<br>
+      左側が入力となるアセンブリ言語プログラム, 右側が出力となる機械語プログラムである.<br>
+      1 行目では EQU 疑似命令を用いて, ラベル N に 80H (16 進数の値 0x80) を紐付けている.<br>
+      同様に SUM の値は 82H (0x82) となる.<br>
+      7 行目の LOOP は "LOOP:" 直後の命令, つまり ADD が配置されるアドレスを示す.<br>
+      ここでは, この ADD 命令が 0x0008 に配置されるため LOOP の値は 0x08 となる.<br>
+    </p>
+    <p>
+      ラベル N は 5 行目で用いられているが, この場合 "LD  IX,  [80H]" と記述した場合と同様の結果が得られる.<br>
+      同様に 9, 10 行目についてもラベルの値が評価され, それぞれ "BP 08H", "ST ACC, [82H]" としてアセンブルされる.
+    </p>
+
+    <pre>
+N:    EQU      80H      |
+SUM:  EQU      82H      |
+      LOC      80H      |
+      DAT      AH       |    0080: 000A
+      LD  IX,  [N]      |    0000: 006C 0080
+      LD  ACC, 0        |    0004: 0062 0000
+LOOP: ADD ACC, IX       |    0008: 00B1
+      SUB IX,  1        |    000A: 00AA 0001
+      BP       LOOP     |    000E: 0033 0008
+      ST  ACC, [SUM]    |    0012: 0074 0082
+      HLT               |    0016: 000F
+    </pre>
+  </section>
+
+  <section>
+    <h2>コメント</h2>
+    <p>
+      各行の # 以降はコメントとして扱われる.
+      アセンブルする際に読み飛ばされるため, 自由に記述することができる.
+    </p>
+  </section>
+</section>
+</body>
+</html>
