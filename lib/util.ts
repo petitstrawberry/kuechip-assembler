@@ -15,7 +15,7 @@ export class Util {
       if ( !isNaN(Number(value)) ) {
         return true
       }
-      else if ( /[0-9A-F]+H/i.exec(value) ) {
+      else if ( /^[0-9A-F]+H$/i.exec(value) ) {
         return true
       }
       else {
